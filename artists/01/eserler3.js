@@ -15,8 +15,7 @@ var currentPaintings = [
     "size": "38.8 × 36.7 cm",
     "location": "National Gallery of Art, Washington D.C., ABD",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Leonardo_da_Vinci_-_Ginevra_de%27_Benci_-_Google_Art_Project.jpg/960px-Leonardo_da_Vinci_-_Ginevra_de%27_Benci_-_Google_Art_Project.jpg",
-    "story": "Leonardo'nun bilinen tek Kuzey Amerika'daki tablosu olan bu eser, Floransalı aristokrat Ginevra de' Benci'nin portresini içermektedir. Arkasındaki ardıç çalısı, Ginevra adının İtalyancası olan 'ginepro' ile oyunlu bir bağ kurar. Tablonun arkasında 'La Virtutem Forma Decorat' (Güzellik Erdemi Süsler) yazısı bulunmaktadır. Leonardo'nun bu çalışmada üç çeyreklik portre kompozisyonunu Avrupa'ya tanıttığı düşünülmektedir. Tablonun alt kısmı daha sonra kesilmiş olup özgün halinde Ginevra'nın elleri de görünmekteydi."
-  },
+    "story": "Leonardo'nun bilinen tek Kuzey Amerika'daki tablosu olan bu eser, Floransalı aristokrat Ginevra de' Benci'nin portresini içermektedir. Arkasındaki ardıç çalısı, Ginevra adının İtalyancası olan 'ginepro' ile oyunlu bir bağ kurar. Tablonun arkasında 'La Virtutem Forma Decorat' (Güzellik Erdemi Süsler) yazısı bulunmaktadır. Leonardo'nun bu çalışmada üç çeyreklik portre kompozisyonunu Avrupa'ya tanıttığı düşünülmektedir. Tablonun alt kısmı daha sonra kesilmiş olup özgün halinde Ginevra'nın elleri de görünmekteydi."  },
   {
     "title": "Aziz Yahya (Saint John the Baptist)",
     "year": "c. 1513–1516",

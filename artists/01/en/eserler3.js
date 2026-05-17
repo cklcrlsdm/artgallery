@@ -15,8 +15,7 @@ var currentPaintings = [
     "size": "38.8 × 36.7 cm",
     "location": "National Gallery of Art, Washington, D.C., USA",
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Leonardo_da_Vinci_-_Ginevra_de%27_Benci_-_Google_Art_Project.jpg/960px-Leonardo_da_Vinci_-_Ginevra_de%27_Benci_-_Google_Art_Project.jpg",
-    "story": "This work is a portrait of Ginevra de' Benci, a well-known Florentine aristocrat. Leonardo broke the portrait traditions of the period by placing the figure in an outdoor setting instead of a closed room. The juniper tree (ginepro) seen in the background is a pun on the woman's name and represents virtue. The bottom part of the painting is known to have been cut off due to damage in the past, meaning her hands are lost today. It is the only painting by Leonardo on public display in the Americas."
-  },
+    "story": "This work, which is the only known painting by Leonardo in North America, features the portrait of the Florentine aristocrat Ginevra de' Benci. The juniper bush behind her makes a playful pun on the Italian word for juniper, 'ginepro', which connects directly to her name. On the reverse side of the panel, the inscription 'La Virtutem Forma Decorat' (Beauty Adorns Virtue) is found. Leonardo is believed to have introduced the three-quarter view portrait composition to Europe with this work. The bottom part of the painting was later cut off due to damage, meaning her hands were also visible in its original state."  },
   {
     "title": "Saint John the Baptist",
     "year": "c. 1513–1516",

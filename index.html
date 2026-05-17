@@ -202,7 +202,10 @@
 
   let totalPaintingsCount = 0;
   let observer;
-
+// ==========================================
+  // 1. DİNAMİK RESSAM LİSTESİ (BOŞ DİZİ)
+  // ==========================================
+  let activeArtists = [];
 
 // Global Dil Ayarı (Varsayılan Türkçe, tarayıcı hafızasında varsa onu çeker)
 let currentLang = localStorage.getItem('siteLang') || 'tr';
@@ -252,34 +255,106 @@ function translateStaticUI() {
 updateLangButtons();
 translateStaticUI();
 
-  document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('total-artists-count').innerText = activeArtists.length;
+document.addEventListener('DOMContentLoaded', function() {
 
-    observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(e) {
-        if (e.isIntersecting) e.target.classList.add('visible');
-      });
-    }, { threshold: 0.05 });
+  // ========================================================
+  // OTO-TARAYICI: ARDIŞIK KLASÖRLERİ ARA (01, 02, 03...)
+  // ========================================================
+  function otomatikRessamKlasorleriniTara(artistNumber) {
+    const folderPrefix = String(artistNumber).padStart(2, '0');
+    const tempScript = document.createElement('script');
+    
+    // Klasörün varlığını denetlemek için bilgi.js'i yokluyoruz
+    tempScript.src = `artists/${folderPrefix}/bilgi.js?v=${Date.now()}`;
+    tempScript.async = false;
 
-    // İlk ressamdan itibaren zinciri başlat
-    ressamYükle(0);
+    tempScript.onload = () => {
+      // Klasör bulunduysa listeye ekle ve geçici script'i temizle
+      activeArtists.push(folderPrefix);
+      tempScript.remove();
+      // Bir sonraki numarayı aramaya devam et (02, 03...)
+      otomatikRessamKlasorleriniTara(artistNumber + 1);
+    };
 
-    // Lightbox & Scroll olayları
-    document.getElementById('lightbox').addEventListener('click', function(e) {
-      if (e.target === this || e.target === document.getElementById('lightbox-img')) {
-        this.classList.remove('open'); document.body.style.overflow = '';
+    tempScript.onerror = () => {
+      // Arama zinciri kırıldıysa (mesela 02 klasörü yoksa) tarama bitmiştir
+      tempScript.remove();
+      console.log(`[Sistem] Dinamik tarama bitti. Toplam bulunan ressam: ${activeArtists.length}`);
+      
+      // Bulunan dinamik ressam sayısını arayüze yazdırıyoruz
+      document.getElementById('total-artists-count').innerText = activeArtists.length;
+
+      // Her şey hazır olduğuna göre senin orijinal akışını tetikliyoruz
+      if (activeArtists.length > 0) {
+        ressamYükle(0);
+      } else {
+        document.getElementById('total-paintings-count').innerText = "0";
       }
-    });
-    document.getElementById('lightbox-close').addEventListener('click', function() {
-      document.getElementById('lightbox').classList.remove('open'); document.body.style.overflow = '';
-    });
-    window.addEventListener('scroll', function() {
-      var btn = document.getElementById('back-top');
-      if (window.scrollY > 400) btn.classList.add('visible');
-      else btn.classList.remove('visible');
-    });
-  });
+    };
 
+    document.head.appendChild(tempScript);
+  }
+
+  // Animasyonları kontrol eden orijinal gözlemcin
+  observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.05 });
+
+  // === DİNAMİK BAŞLANGIÇ TETİĞİ ===
+  // Statik yükleme yerine tarama motorunu 1 numaralı (01) klasörden başlatıyoruz
+  otomatikRessamKlasorleriniTara(1);
+
+  // Lightbox & Scroll olayları (Birebir korunan orijinal kodların)
+  document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this || e.target === document.getElementById('lightbox-img')) {
+      this.classList.remove('open'); document.body.style.overflow = '';
+    }
+  });
+  document.getElementById('lightbox-close').addEventListener('click', function() {
+    document.getElementById('lightbox').classList.remove('open'); document.body.style.overflow = '';
+  });
+  window.addEventListener('scroll', function() {
+    var btn = document.getElementById('back-top');
+    if (window.scrollY > 400) btn.classList.add('visible');
+    else btn.classList.remove('visible');
+  });
+});
+// ==========================================
+  // OTO-TARAYICI: ARDIŞIK KLASÖRLERİ ARA (01, 02, 03...)
+  // ==========================================
+  function otomatikRessamKlasorleriniTara(artistNumber) {
+    const folderPrefix = String(artistNumber).padStart(2, '0');
+    const tempScript = document.createElement('script');
+    
+    // Sadece kontrol etmek amacıyla bilgi.js dosyasını yokluyoruz
+    tempScript.src = `artists/${folderPrefix}/bilgi.js?v=${Date.now()}`;
+    tempScript.async = false;
+
+    tempScript.onload = () => {
+      // Eğer bu numaralı klasörde bilgi.js varsa, dizimize klasör adını (örn: "01") pushla
+      activeArtists.push(folderPrefix);
+      // Geçici scripti temizle ve bir sonraki numarayı aramaya devam et
+      tempScript.remove();
+      otomatikRessamKlasorleriniTara(artistNumber + 1);
+    };
+
+    tempScript.onerror = () => {
+      // Ne zaman ki tarayıcı 404 hatası fırlatırsa (Örn: 02 yoksa), arama zinciri biter
+      tempScript.remove();
+      console.log(`[Sistem] Dinamik tarama tamamlandı. Toplam bulunan ressam: ${activeArtists.length}`);
+      
+      // Arama bittiğine göre artık orijinal kodundaki ressamYükle fonksiyonunu tetikleyebiliriz!
+      if (activeArtists.length > 0) {
+        ressamYükle(0);
+      } else {
+        document.getElementById('total-paintings-count').innerText = "0";
+      }
+    };
+
+    document.head.appendChild(tempScript);
+  }
   // 1. AŞAMA: Sıradaki ressamın bilgi.js dosyasını yükler
   function ressamYükle(artistIndex) {
   if (artistIndex >= activeArtists.length) {
