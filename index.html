@@ -158,7 +158,12 @@
 
 <header id="topnav">
   <a href="#hero" class="nav-logo">Masters of Art</a>
-  <nav><a href="#artists-index">Ressamlar</a></nav>
+  <nav><a href="#artists-index">Ressamlar</a>
+  <div class="lang-switch-container" style="position: relative; top: 0; right:0; display: flex; gap: 0.5rem; z-index: 100;">
+  <button onclick="setLanguage('tr')" id="btn-lang-tr" style="background: var(--ink); color: var(--cream); border: 1px solid var(--gold); padding: 0.4rem 0.8rem; font-family: 'Cinzel', serif; cursor: pointer; font-size: 0.8rem; transition: all 0.3s;">TR</button>
+  <button onclick="setLanguage('en')" id="btn-lang-en" style="background: transparent; color: var(--ink); border: 1px solid var(--divider); padding: 0.4rem 0.8rem; font-family: 'Cinzel', serif; cursor: pointer; font-size: 0.8rem; transition: all 0.3s;">EN</button>
+</div>
+  </nav>
 </header>
 
 <section id="hero">
@@ -194,8 +199,58 @@
 
 <script src="active_artists.js"></script>
 <script>
+
   let totalPaintingsCount = 0;
   let observer;
+
+
+// Global Dil Ayarı (Varsayılan Türkçe, tarayıcı hafızasında varsa onu çeker)
+let currentLang = localStorage.getItem('siteLang') || 'tr';
+
+function setLanguage(lang) {
+  localStorage.setItem('siteLang', lang);
+  currentLang = lang;
+  
+  // Sayfayı temizle ve ressamları yeni seçilen dille baştan yükle
+  document.getElementById('fihrist-container').innerHTML = '';
+  document.getElementById('main-content-flow').innerHTML = '';
+  totalPaintingsCount = 0;
+  
+  // Butonların aktiflik stilini güncelle
+  updateLangButtons();
+  
+  // Arayüzdeki sabit metinleri çevir
+  translateStaticUI();
+  
+  // Akışı baştan başlat
+  ressamYükle(0);
+}
+
+function updateLangButtons() {
+  const btnTr = document.getElementById('btn-lang-tr');
+  const btnEn = document.getElementById('btn-lang-en');
+  if (!btnTr || !btnEn) return;
+
+  if (currentLang === 'en') {
+    btnEn.style.background = 'var(--ink)'; btnEn.style.color = 'var(--cream)'; btnEn.style.borderColor = 'var(--gold)';
+    btnTr.style.background = 'transparent'; btnTr.style.color = 'var(--ink)'; btnTr.style.borderColor = 'var(--divider)';
+  } else {
+    btnTr.style.background = 'var(--ink)'; btnTr.style.color = 'var(--cream)'; btnTr.style.borderColor = 'var(--gold)';
+    btnEn.style.background = 'transparent'; btnEn.style.color = 'var(--ink)'; btnEn.style.borderColor = 'var(--divider)';
+  }
+}
+
+function translateStaticUI() {
+  // Sayfadaki sabit kelimeleri dile göre esnetiyoruz
+  const fihristTitle = document.querySelector('.fihrist-title');
+  if (fihristTitle) {
+    fihristTitle.innerText = currentLang === 'en' ? 'INDEX OF MASTERS' : 'RESSAMLAR FİHRİSTİ';
+  }
+  // İhtiyacına göre alt bilgi veya diğer statik alanları da buraya ekleyebilirsin
+}
+
+updateLangButtons();
+translateStaticUI();
 
   document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('total-artists-count').innerText = activeArtists.length;
@@ -227,117 +282,138 @@
 
   // 1. AŞAMA: Sıradaki ressamın bilgi.js dosyasını yükler
   function ressamYükle(artistIndex) {
-    if (artistIndex >= activeArtists.length) {
-      // Tüm ressamlar ve alt dosyaları bittiğinde genel sayacı güncelle
-      document.getElementById('total-paintings-count').innerText = totalPaintingsCount;
-      return;
-    }
-
-    const folder = activeArtists[artistIndex];
-    const ressamNoStr = String(artistIndex + 1).padStart(2, '0');
-
-    const bilgiScript = document.createElement('script');
-    bilgiScript.src = `artists/${folder}/bilgi.js`;
-    
-    bilgiScript.onload = () => {
-      // Fihrist kartını dinamik ekle
-      const fihristContainer = document.getElementById('fihrist-container');
-      const indexItem = document.createElement('a');
-      indexItem.className = 'artist-index-item';
-      indexItem.href = `#${folder}`;
-      indexItem.innerHTML = `
-        <span class="idx-num">${ressamNoStr}</span>
-        <span class="idx-name">${artistInfo.name.replace('<br>', ' ')}</span>
-        <span class="idx-era">${artistInfo.movement} · ${artistInfo.dates.split(',')[0]}</span>
-      `;
-      fihristContainer.appendChild(indexItem);
-
-      // Ressamın ana vitrin yapısını inşa et
-      const mainFlow = document.getElementById('main-content-flow');
-      const section = document.createElement('section');
-      section.className = 'artist-section';
-      section.id = folder;
-      section.innerHTML = `
-        <div class="artist-header">
-          <div>
-            <span class="artist-number">Ressam ${ressamNoStr}</span>
-            <h2 class="artist-name">${artistInfo.name}</h2>
-            <span class="artist-dates">${artistInfo.dates}</span>
-            <span class="artist-movement">${artistInfo.movement}</span>
-          </div>
-          <p class="artist-bio">${artistInfo.bio}</p>
-        </div>
-        <div class="artworks-grid" id="grid-${folder}"></div>
-      `;
-      mainFlow.appendChild(section);
-      observer.observe(section);
-
-      // 2. AŞAMA: Künye bitince eserler1.js'den başlayarak ardışık dosyaları tara
-      ardisikEserDosyasiTara(folder, 1, 1, artistIndex);
-    };
-    
-    bilgiScript.onerror = () => {
-      console.error(`artists/${folder}/bilgi.js bulunamadı, sonraki ressama geçiliyor.`);
-      ressamYükle(artistIndex + 1);
-    };
-    
-    document.head.appendChild(bilgiScript);
+  if (artistIndex >= activeArtists.length) {
+    document.getElementById('total-paintings-count').innerText = totalPaintingsCount;
+    return;
   }
 
-  // TAM DİNAMİK ALTI DÖNGÜ: eserler1.js, eserler2.js... dosya bitene kadar gider
-  function ardisikEserDosyasiTara(folder, fileIndex, localWorkCounter, artistIndex) {
-    const gridContainer = document.getElementById(`grid-${folder}`);
-    const eserScript = document.createElement('script');
-    eserScript.src = `artists/${folder}/eserler${fileIndex}.js`;
+  const folder = activeArtists[artistIndex];
+  const ressamNoStr = String(artistIndex + 1).padStart(2, '0');
 
-    eserScript.onload = () => {
-      // Dosya başarıyla yüklendi, içindeki diziyi ekrana bas
-      currentPaintings.forEach(eser => {
-        totalPaintingsCount++;
-        const row = document.createElement('div');
-        row.className = 'artwork-row';
-        row.innerHTML = `
-          <div class="artwork-image-wrap" onclick="openLightbox(this)">
-            <img src="${eser.img}" alt="${eser.title}" loading="lazy">
-            <span class="artwork-image-zoom-hint">Büyüt</span>
-          </div>
-          <div class="artwork-info">
-            <span class="artwork-num">Eser ${String(localWorkCounter).padStart(2, '0')}</span>
-            <h3 class="artwork-title">${eser.title}</h3>
-            <dl class="artwork-meta">
-              <dt>Yıl</dt><dd>${eser.year}</dd>
-              <dt>Teknik</dt><dd>${eser.technique}</dd>
-              <dt>Boyut</dt><dd>${eser.size}</dd>
-              <dt>Konum</dt><dd>${eser.location}</dd>
-            </dl>
-            <div class="artwork-divider"></div>
-            <p class="artwork-story">${eser.story}</p>
+  // KURAL: Eğer dil İngilizce ise "artists/klasor/en/bilgi.js" yoluna git
+  const langPath = currentLang === 'en' ? 'en/' : '';
+  const bilgiScript = document.createElement('script');
+  bilgiScript.src = `artists/${folder}/${langPath}bilgi.js?v=${Date.now()}`;
+  bilgiScript.async = false;
+  
+  bilgiScript.onload = () => {
+    const fihristContainer = document.getElementById('fihrist-container');
+    const indexItem = document.createElement('a');
+    indexItem.className = 'artist-index-item';
+    indexItem.href = `#${folder}`;
+    indexItem.innerHTML = `
+      <span class="idx-num">${ressamNoStr}</span>
+      <span class="idx-name">${artistInfo.name.replace('<br>', ' ')}</span>
+      <span class="idx-era">${artistInfo.movement} · ${artistInfo.dates.split(',')[0]}</span>
+    `;
+    fihristContainer.appendChild(indexItem);
+
+    let extraDetailsHTML = '';
+    if (artistInfo.extraDetails && artistInfo.extraDetails.length > 0) {
+      extraDetailsHTML = `<div class="artist-extra-details" style="margin-top: 2rem; border-top: 1px dashed var(--divider); padding-top: 1.5rem;">`;
+      artistInfo.extraDetails.forEach(detail => {
+        extraDetailsHTML += `
+          <div style="margin-bottom: 1.5rem;">
+            <h4 style="font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--gold); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5rem;">${detail.title}</h4>
+            <p class="artist-bio" style="font-size: 0.95rem; line-height: 1.7; opacity: 0.85; max-width: 800px;">${detail.content}</p>
           </div>
         `;
-        gridContainer.appendChild(row);
-        localWorkCounter++;
       });
+      extraDetailsHTML += `</div>`;
+    }
 
-      // Hemen bir sonraki ardışık dosyayı aramaya başla (Eserler + 1)
-      ardisikEserDosyasiTara(folder, fileIndex + 1, localWorkCounter, artistIndex);
-    };
+    const labelTarz = currentLang === 'en' ? 'Style' : 'Tarz';
+    const labelRessam = currentLang === 'en' ? 'Master' : 'Ressam';
 
-    // Tarayıcı hata fırlattığı an (Örn: eserler3.js klasörde yoksa), o ressamın taraması biter
-    eserScript.onerror = () => {
-      // Künyeleri "Aktif Eser / Toplam Eser" (Örn: 01 / 12) formatına revize et
-      const rows = gridContainer.querySelectorAll('.artwork-row');
-      const totalLocalWorks = rows.length;
-      rows.forEach((row, i) => {
-        row.querySelector('.artwork-num').innerText = `${String(i + 1).padStart(2, '0')} / ${String(totalLocalWorks).padStart(2, '0')}`;
-      });
+    const mainFlow = document.getElementById('main-content-flow');
+    const section = document.createElement('section');
+    section.className = 'artist-section';
+    section.id = folder;
+    section.innerHTML = `
+      <div class="artist-header">
+        <div>
+          <span class="artist-number">${labelRessam} ${ressamNoStr}</span>
+          <h2 class="artist-name">${artistInfo.name}</h2>
+          <span class="artist-dates">${artistInfo.dates}</span>
+          <span class="artist-movement">${artistInfo.movement}</span>
+          ${artistInfo.style ? `<span class="artist-movement" style="display:block; margin-top:0.3rem; font-style:italic; opacity:0.8;">${labelTarz}: ${artistInfo.style}</span>` : ''}
+        </div>
+        <p class="artist-bio">${artistInfo.bio}</p>
+        ${extraDetailsHTML}
+      </div>
+      <div class="artworks-grid" id="grid-${folder}"></div>
+    `;
+    mainFlow.appendChild(section);
+    observer.observe(section);
 
-      // Ana zincire geri dön, sıradaki ressamı yükle
-      ressamYükle(artistIndex + 1);
-    };
+    ardisikEserDosyasiTara(folder, 1, 1, artistIndex);
+  };
+  
+  bilgiScript.onerror = () => {
+    ressamYükle(artistIndex + 1);
+  };
+  document.head.appendChild(bilgiScript);
+}
 
-    document.head.appendChild(eserScript);
-  }
+function ardisikEserDosyasiTara(folder, fileIndex, localWorkCounter, artistIndex) {
+  const gridContainer = document.getElementById(`grid-${folder}`);
+  const eserScript = document.createElement('script');
+  
+  // KURAL: Eğer dil İngilizce ise "artists/klasor/en/eserlerX.js" yoluna git
+  const langPath = currentLang === 'en' ? 'en/' : '';
+  eserScript.src = `artists/${folder}/${langPath}eserler${fileIndex}.js?v=${Date.now()}`;
+  eserScript.async = false;
 
+  eserScript.onload = () => {
+    // Eser kartı künyesindeki kelimeleri dile göre seçiyoruz
+    const lblYear = currentLang === 'en' ? 'Year' : 'Yıl';
+    const lblTech = currentLang === 'en' ? 'Technique' : 'Teknik';
+    const lblSize = currentLang === 'en' ? 'Size' : 'Boyut';
+    const lblLoc = currentLang === 'en' ? 'Location' : 'Konum';
+    const lblZoom = currentLang === 'en' ? 'Expand' : 'Büyüt';
+
+    currentPaintings.forEach(eser => {
+      totalPaintingsCount++;
+      
+      const row = document.createElement('div');
+      row.className = 'artwork-row';
+      row.innerHTML = `
+        <div class="artwork-image-wrap" onclick="openLightbox(this)">
+          <img src="${eser.img}" alt="${eser.title}" loading="lazy">
+          <span class="artwork-image-zoom-hint">${lblZoom}</span>
+        </div>
+        <div class="artwork-info">
+          <span class="artwork-num">${localWorkCounter}</span>
+          <h3 class="artwork-title">${eser.title}</h3>
+          <dl class="artwork-meta">
+            <dt>${lblYear}</dt><dd>${eser.year}</dd>
+            <dt>${lblTech}</dt><dd>${eser.technique}</dd>
+            <dt>${lblSize}</dt><dd>${eser.size}</dd>
+            <dt>${lblLoc}</dt><dd>${eser.location}</dd>
+          </dl>
+          <div class="artwork-divider"></div>
+          <p class="artwork-story">${eser.story}</p>
+        </div>
+      `;
+      gridContainer.appendChild(row);
+      localWorkCounter++;
+    });
+
+    ardisikEserDosyasiTara(folder, fileIndex + 1, localWorkCounter, artistIndex);
+  };
+
+  eserScript.onerror = () => {
+    const rows = gridContainer.querySelectorAll('.artwork-row');
+    const totalLocalWorks = rows.length;
+    rows.forEach((row, i) => {
+      row.querySelector('.artwork-num').innerText = `${String(i + 1).padStart(2, '0')} / ${String(totalLocalWorks).padStart(2, '0')}`;
+    });
+
+    ressamYükle(artistIndex + 1);
+  };
+
+  document.head.appendChild(eserScript);
+}
   function openLightbox(el) {
     var img = el.querySelector('img');
     if (!img) return;
